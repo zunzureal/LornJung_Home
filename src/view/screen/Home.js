@@ -65,10 +65,19 @@ class Home extends Component {
       .then((res) => res.json())
       .then((json) => {
         console.log(json);
+
+        const cel = json.main.temp;
+        const hu = json.main.humidity;
+
+        const fahrenheit = cel * (9/5) + 32;
+        const humidity = hu / 100;
+        const heatindex = -42.379 + (2.04901523 * fahrenheit) + (10.14333127 * humidity) - (0.22475541 * (fahrenheit * humidity)) - (0.00683783 * (fahrenheit ** 2)) - (0.05481717 * (humidity ** 2)) + (0.00122874 * ((fahrenheit ** 2) * humidity)) + (0.00085282 * (fahrenheit * (humidity ** 2))) - (0.00000199 * (fahrenheit ** 2) * (humidity ** 2));
+
         this.setState({
           isLoading: false,
           temperature: json.main.temp,
           weatherCondition: json.weather[0].main,
+          heatindex,
         });
       })
       .catch((error) => {
@@ -78,7 +87,38 @@ class Home extends Component {
   };
 
   render() {
-    const { isLoading, temperature, error } = this.state;
+    const { isLoading, temperature, error , heatindex} = this.state;
+
+    let titleText;
+    let subtitleText;
+  
+  //ทำเกี่ยวกับ Notification แจ้งเตือน Heat Index
+    switch (true) {
+      case heatindex >= 125:
+        titleText = 'Extreame Danger';
+        subtitleText = 'Heat stroke highly likely';
+        break;
+        
+      case heatindex >= 103 && heatindex < 124:
+        titleText = 'Danger';
+        subtitleText = 'Heat cramps or heat exhaustion likely, and heat stroke possible with prolonged exposure and/or physical activity';
+        break;
+
+      case heatindex >= 90 && heatindex < 103:
+        titleText = 'Extreme Caution';
+        subtitleText = 'Heat stroke, heat cramps, or heat exhaustion possible with prolonged exposure and/or physical activity';
+        break;
+
+      case heatindex >= 80 && heatindex < 90:
+        titleText = 'Caution';
+        subtitleText = 'Fatigue possible with prolonged exposure and/or physical activity';
+        break;
+
+      case heatindex >= 0 && heatindex < 79:
+        titleText = 'Low Heat';
+        subtitleText = 'Low Heat Stay Safe';
+        break;
+    }
 
     return (
       <SafeAreaView
@@ -296,7 +336,7 @@ class Home extends Component {
               </View>
             </View>
             <Text style={styles.textAgency}>
-              • ตัวร้อนขึ้นเรื่อยๆ จนทำให้ความร้อนในร่างกายสูงถึง 40 องศา
+              {titleText}
             </Text>
             <Text style={styles.textAgency}>
               • ไม่มีเหงื่อออก รู้สึกกระหายน้ำมาก
